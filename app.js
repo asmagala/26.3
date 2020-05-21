@@ -1,7 +1,13 @@
 const Jimp = require('jimp');
-const inquirer = require('inquirer')
+const inquirer = require('inquirer');
+const fs=require('fs');
 
 const addTextWatermarkToImage = async function(inputFile, outputFile, text) {
+  
+  if(!fs.existsSync(inputFile)) {
+    console.log('\n==== Something went wrong... Try again ====\n');
+    process.exit();
+  }
   const image = await Jimp.read(inputFile);
   const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
 
@@ -13,14 +19,17 @@ const addTextWatermarkToImage = async function(inputFile, outputFile, text) {
 
   image.print(font, 10, 10, textData, image.getWidth(), image.getHeight());
   await image.quality(100).writeAsync(outputFile);
+
+  console.log('\n==== Congratulation! Your task\'s completed with success! ====\n');
+  startApp();
 };
 
-const prepareOutputFilename = (filename) => {
-  const [ name, ext ] = filename.split('.');
-  return `${name}-with-watermark.${ext}`;
-}
-
 const addImageWatermarkToImage = async function(inputFile, outputFile, watermarkFile) {
+  
+  if(!((fs.existsSync(inputFile) && fs.existsSync(watermarkFile)))) {
+    console.log('\n==== Something went wrong... Try again ====\n');
+    process.exit();
+  }
   const image = await Jimp.read(inputFile);
   const watermark = await Jimp.read(watermarkFile);
   const x = (image.getWidth() - watermark.getWidth()) / 2;
@@ -31,7 +40,15 @@ const addImageWatermarkToImage = async function(inputFile, outputFile, watermark
     opacitySource: 0.5,
   });
   await image.quality(100).writeAsync(outputFile);
+  
+  console.log('\n==== Congratulation! Your task\'s completed with success! ====\n');
+  startApp();
 };
+
+const prepareOutputFilename = (filename) => {
+  const [ name, ext ] = filename.split('.');
+  return `${name}-with-watermark.${ext}`;
+}
 
 const startApp = async () => {
   // Ask if user is ready
@@ -75,10 +92,6 @@ const startApp = async () => {
     options.watermarkImage = image.filename;
     addImageWatermarkToImage('./img/' + options.inputImage, './img/' + prepareOutputFilename(options.inputImage), './img/' + options.watermarkImage);
   }
-
-
-
-
-}
+};
 
 startApp();
